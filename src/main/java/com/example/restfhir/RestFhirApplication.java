@@ -1,12 +1,18 @@
 package com.example.restfhir;
 
 import com.example.restfhir.controller.TestApi;
+import com.example.restfhir.util.FhirSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Predicates;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.request.async.DeferredResult;
 import springfox.documentation.builders.ParameterBuilder;
@@ -52,5 +58,21 @@ public class RestFhirApplication {
                                 .build()))
                 .enableUrlTemplating(true)
                 .tags(new Tag("Hello", "All apis"));
+    }
+
+
+
+    @Bean
+    public ObjectMapper jacksonObjectMapper(Jackson2ObjectMapperBuilder builder) {
+        ObjectMapper objectMapper = builder.createXmlMapper(false).build();
+
+        objectMapper.registerModule(new Jdk8Module());
+        objectMapper.registerModule(new JavaTimeModule());
+
+
+        SimpleModule fhirModule = new SimpleModule();
+        fhirModule.addSerializer(new FhirSerializer());
+        objectMapper.registerModule(fhirModule);
+        return objectMapper;
     }
 }
